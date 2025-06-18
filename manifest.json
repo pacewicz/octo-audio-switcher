@@ -1,0 +1,19 @@
+{
+  "required_api_version": "^2.0.0",
+  "name": "Octo Audio Switcher",
+  "description": "Switch PipeWire audio output (sink) with Ulauncher",
+  "developer_name": "Christian Camacho",
+  "icon": "images/icon.png",
+  "options": {
+    "query_debounce": 0.05
+  },
+  "preferences": [
+    {
+      "id": "audio_switcher_keyword",
+      "type": "keyword",
+      "name": "Audio Switch Keyword",
+      "description": "Keyword to activate the audio switcher extension",
+      "default_value": "swa"
+    }
+  ]
+}
