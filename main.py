@@ -93,6 +93,27 @@ def get_node_properties(node_id):
     return props
 
 
+def get_bluetooth_low_quality_label(sink_id):
+    """Return a short label (e.g. 'HFP') if this sink is a Bluetooth node
+    currently on a non-A2DP profile, else None.
+
+    The label is derived from `api.bluez5.profile` so it stays accurate
+    across HSP, HFP head-unit, and HFP audio-gateway variants.
+    """
+    props = get_node_properties(sink_id)
+    if not props.get("node.name", "").startswith("bluez_output."):
+        return None
+    profile = props.get("api.bluez5.profile", "")
+    if not profile or "a2dp" in profile.lower():
+        return None
+    lowered = profile.lower()
+    if "handsfree" in lowered or "hfp" in lowered:
+        return "HFP"
+    if "headset" in lowered or "hsp" in lowered:
+        return "HSP"
+    return profile
+
+
 def get_saved_card_profile(card_name):
     """Return the profile WirePlumber last persisted for this card, or None.
 
@@ -235,11 +256,17 @@ class KeywordQueryEventListener(EventListener):
             for sink_id, sink_desc in sinks_list.items():
                 marker = "* " if sink_id == current_id else "  "
                 label = f"{marker}{sink_id} → {sink_desc}"
+                low_quality = get_bluetooth_low_quality_label(sink_id)
+                if low_quality:
+                    label += "  [low quality]"
+                    description = f"Currently on {low_quality}; selecting will switch to A2DP"
+                else:
+                    description = "Switch to this audio sink"
                 data = {"sink_id": sink_id, "sink_name": sink_desc}
                 items.append(ExtensionResultItem(
                     icon='images/icon.png',
                     name=label,
-                    description="Switch to this audio sink",
+                    description=description,
                     on_enter=ExtensionCustomAction(data, keep_app_open=False)
                 ))
 
